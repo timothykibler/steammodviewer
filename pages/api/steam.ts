@@ -16,9 +16,9 @@ export default async function handler(
 ) {
 
   // * is first page
-  const { cursor = '*', key, search_text }: QueryParams = req.query
+  const { cursor = '*', key, search_text, steam_app_id }: QueryParams = req.query
 
-  const response = await fetch(`http://api.steampowered.com/IPublishedFileService/QueryFiles/v1?appid=108600&numperpage=10&cursor=${cursor}&return_previews=true&return_short_description=true&search_text=${search_text}`, {
+  const response = await fetch(`http://api.steampowered.com/IPublishedFileService/QueryFiles/v1?appid=${steam_app_id}&numperpage=10&cursor=${cursor}&return_previews=true&return_short_description=true&search_text=${search_text}`, {
     mode: 'cors',
     headers: {
       'x-webapi-key': key

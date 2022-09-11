@@ -11,6 +11,7 @@ const Home: NextPage = () => {
   // maybe load this from input if needed
   const [steamKey, ] = useState<string>(STEAM_API_KEY)
   const [total, setTotal] = useState<number>(0)
+  const [steamAppID, setSteamAppID] = useState('108600')
 
   const [previousCursor, setPreviousCursor] = useState('*')
   const [nextCursor, setNextCursor] = useState('*')
@@ -26,14 +27,12 @@ const Home: NextPage = () => {
   const [cursorHistory, setCursorHistory] = useState<string[]>(['*'])
 
   useEffect(() => {
-    console.log('cursor for')
-    console.log(currentCursor)
-    console.log(currentStepCount)
     setCursorHistory((state) => ([...state, currentCursor]))
   }, [currentStepCount, currentCursor, setCursorHistory])
 
-  async function searchWorkshopItems(s_text: string, steam_key: string, current_cursor: string) {
-    const response = await fetch(`/api/steam?key=${steam_key}&cursor=${current_cursor}&search_text=${s_text}`)
+  // pass controlled values in...maybe dep tree can be simplified idk
+  async function searchWorkshopItems(s_text: string, steam_key: string, current_cursor: string, steam_app_id: string) {
+    const response = await fetch(`/api/steam?key=${steam_key}&cursor=${current_cursor}&search_text=${s_text}&steam_app_id=${steam_app_id}`)
     const jsonraw = await response.json()
     setCurrentItems(jsonraw.publishedfiledetails)
     setCurrentCursor(current_cursor)
@@ -42,32 +41,48 @@ const Home: NextPage = () => {
   }
 
   const handleSearch = useCallback(async () => {
-    await searchWorkshopItems(searchText, steamKey, currentCursor)
-  }, [searchText, steamKey, currentCursor])
+    await searchWorkshopItems(searchText, steamKey, currentCursor, steamAppID)
+  }, [searchText, steamKey, currentCursor, steamAppID])
 
   const handleNextPress = useCallback(async () => {
-    await searchWorkshopItems(searchText, steamKey, nextCursor)
+    await searchWorkshopItems(searchText, steamKey, nextCursor, steamAppID)
     setPreviousCursor(currentCursor)
     setCurrentStepCount((state) => (state + 1))
-  }, [searchText, steamKey, nextCursor, currentCursor, setCurrentCursor, setPreviousCursor, setCurrentStepCount])
+  }, [searchText, steamKey, nextCursor, currentCursor, setCurrentCursor, setPreviousCursor, setCurrentStepCount, steamAppID])
 
   const handlePreviousPress = useCallback(async () => {
-    await searchWorkshopItems(searchText, steamKey, cursorHistory[currentStepCount])
+    await searchWorkshopItems(searchText, steamKey, cursorHistory[currentStepCount], steamAppID)
     // setPreviousCursor()
     setCurrentStepCount((state) => (state - 1))
-  }, [searchText, steamKey, previousCursor, setCurrentStepCount, setPreviousCursor, cursorHistory, currentStepCount])
+  }, [searchText, steamKey, previousCursor, setCurrentStepCount, setPreviousCursor, cursorHistory, currentStepCount, steamAppID])
 
   return (
     <Container maxWidth='md'>
       <Typography variant='h1'>
-        Project Zomboid
+        Steam
       </Typography>
 
       <Typography variant='h2'>
         Dedicated Server Mod Helper
       </Typography>
 
+      <Typography variant='body1'>
+        Get a list of WorkshopIDs, useful for games like Project Zomboid.
+      </Typography>
+
       <TextField
+        style={{ marginTop: '1em' }}
+        onChange={(ev: any) => (setSteamAppID(ev.target.value))}
+        value={steamAppID}
+        helperText='appID'
+        fullWidth={true}
+        variant='filled'
+        id='standard-basic'
+        label='Steam appID'
+      />
+
+      <TextField
+        style={{marginTop: '1em'}}
         onChange={(ev: any) => (setSearchText(ev.target.value))}
         helperText='Search for a mod...'
         fullWidth={true}
